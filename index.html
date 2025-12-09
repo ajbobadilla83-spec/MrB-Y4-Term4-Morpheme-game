@@ -1,0 +1,1050 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Morpheme Game – Term 4</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <style>
+    :root {
+      --bg: #f7f7fb;
+      --card-bg: #ffffff;
+      --accent: #2b6cb0;
+      --accent-soft: #ebf4ff;
+      --correct: #2f855a;
+      --incorrect: #c53030;
+      --border: #d0d0e0;
+      --text-main: #13213c;
+      --text-muted: #55596b;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--text-main);
+    }
+
+    .page {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 16px 12px 40px;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 12px;
+    }
+
+    header h1 {
+      font-size: 1.4rem;
+      margin: 0;
+    }
+
+    header p {
+      margin: 4px 0 0;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+
+    .nav-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      margin: 10px 0 16px;
+      flex-wrap: wrap;
+    }
+
+    .nav-bar button {
+      flex: 1 1 80px;
+      padding: 8px 10px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: #fff;
+      font-size: 0.9rem;
+      cursor: pointer;
+    }
+
+    .nav-bar button.primary {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+
+    .nav-bar button:active {
+      transform: scale(0.98);
+    }
+
+    .progress {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      text-align: right;
+      flex: 1 1 100%;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      padding: 14px 14px 10px;
+      margin-bottom: 12px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+    }
+
+    .card-title {
+      font-size: 1rem;
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .card-title span.label {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--accent);
+      background: var(--accent-soft);
+      padding: 2px 6px;
+      border-radius: 999px;
+    }
+
+    .morpheme-main {
+      font-size: 1.6rem;
+      font-weight: 700;
+    }
+
+    .examples { display: none; }
+
+    .question-text {
+      font-size: 0.95rem;
+      margin: 4px 0 10px;
+    }
+
+    .options {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .option {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 10px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: #fff;
+      cursor: pointer;
+      font-size: 0.95rem;
+      min-height: 38px;
+    }
+
+    .option .tick {
+      font-size: 0.95rem;
+      width: 18px;
+      text-align: center;
+    }
+
+    .option.correct-selected {
+      border-color: var(--correct);
+      background: #f0fff4;
+      color: var(--correct);
+      font-weight: 600;
+    }
+
+    .option.incorrect-selected {
+      border-color: var(--incorrect);
+      background: #fff5f5;
+      color: var(--incorrect);
+    }
+
+    .feedback {
+      font-size: 0.85rem;
+      margin-top: 6px;
+      min-height: 18px;
+    }
+
+    .feedback.correct { color: var(--correct); }
+    .feedback.incorrect { color: var(--incorrect); }
+
+    /* Part 2 */
+
+    .puzzle-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 8px;
+    }
+
+    .puzzle-word {
+      font-weight: 600;
+      font-size: 1rem;
+    }
+
+    .puzzle-instruction {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    .tile-bank {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 10px;
+    }
+
+    .tile {
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--accent);
+      background: #fff;
+      font-size: 0.9rem;
+      cursor: pointer;
+      user-select: none;
+      touch-action: manipulation;
+      white-space: nowrap;
+    }
+
+    .tile.selected {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    .columns {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    @media (min-width: 720px) {
+      .columns {
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+      }
+    }
+
+    .drop-column {
+      border-radius: 10px;
+      border: 1px dashed var(--border);
+      min-height: 70px;
+      padding: 4px 6px 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      font-size: 0.8rem;
+      touch-action: manipulation;
+    }
+
+    .drop-column-header {
+      font-weight: 600;
+      font-size: 0.8rem;
+      margin-bottom: 2px;
+      color: var(--text-muted);
+    }
+
+    /* Column colours */
+    .drop-column[data-column-type="prefix"] {
+      background: #e6ffed;   /* light green */
+    }
+
+    .drop-column[data-column-type="root"] {
+      background: #ffe6f0;   /* light pink */
+    }
+
+    .drop-column[data-column-type="suffix"] {
+      background: #fff9d9;   /* light yellow */
+    }
+
+    .drop-column[data-column-type="greek"] {
+      background: #e6f0ff;   /* light blue for Greek forms */
+    }
+
+    .drop-column .tile {
+      border-radius: 999px;
+    }
+
+    .puzzle-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 8px;
+    }
+
+    .puzzle-buttons button {
+      flex: 1 1 80px;
+      padding: 8px 10px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: #fff;
+      font-size: 0.85rem;
+      cursor: pointer;
+    }
+
+    .puzzle-buttons button.primary {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+
+    .puzzle-feedback {
+      font-size: 0.85rem;
+      margin-top: 6px;
+      min-height: 18px;
+    }
+
+    .puzzle-feedback.correct { color: var(--correct); }
+    .puzzle-feedback.incorrect { color: var(--incorrect); }
+
+    .small-note {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header>
+      <h1>Level 1 Morpheme Game – Term 4</h1>
+      <p>Part 1: meanings &nbsp;•&nbsp; Part 2: sort morphemes into prefix, Greek form, root, suffix</p>
+    </header>
+
+    <div class="nav-bar">
+      <button id="prevBtn">◀ Previous</button>
+      <button id="nextBtn" class="primary">Next ▶</button>
+      <div class="progress" id="progressText"></div>
+    </div>
+
+    <!-- Part 1 -->
+    <section class="card" id="part1">
+      <div class="card-title">
+        <div>
+          <div class="morpheme-main" id="morphemeText"></div>
+          <div class="examples" id="examplesText"></div>
+        </div>
+        <span class="label" id="typeLabel"></span>
+      </div>
+
+      <div class="question-text">
+        What does this morpheme mean?
+      </div>
+
+      <div class="options" id="optionsContainer"></div>
+
+      <div class="feedback" id="feedbackPart1"></div>
+    </section>
+
+    <!-- Part 2 -->
+    <section class="card" id="part2">
+      <div class="puzzle-header">
+        <div class="puzzle-word">Build the word</div>
+        <div class="puzzle-instruction">
+          Tap a tile, then tap a column to move it.
+        </div>
+      </div>
+
+      <div class="tile-bank" id="tileBank"></div>
+
+      <div class="columns">
+        <div class="drop-column" data-column-type="prefix">
+          <div class="drop-column-header">Prefix</div>
+        </div>
+        <div class="drop-column" data-column-type="greek">
+          <div class="drop-column-header">Greek form</div>
+        </div>
+        <div class="drop-column" data-column-type="root">
+          <div class="drop-column-header">Root</div>
+        </div>
+        <div class="drop-column" data-column-type="suffix" data-suffix-index="1">
+          <div class="drop-column-header">Suffix 1</div>
+        </div>
+        <div class="drop-column" data-column-type="suffix" data-suffix-index="2">
+          <div class="drop-column-header">Suffix 2</div>
+        </div>
+      </div>
+
+      <div class="puzzle-buttons">
+        <button id="checkPuzzleBtn" class="primary">Check</button>
+        <button id="showAnswerBtn">Show correct</button>
+        <button id="resetPuzzleBtn">Reset tiles</button>
+      </div>
+
+      <div class="puzzle-feedback" id="puzzleFeedback"></div>
+      <div class="small-note">
+        Tiles come from the example words for this morpheme.
+      </div>
+    </section>
+  </div>
+
+  <script>
+    // -----------------------------
+    // Term 4 morphemes
+    // -----------------------------
+    const term4Morphemes = [
+      // Prefixes (green)
+      { id: "abs_away",   morpheme: "ab(s)", type: "prefix", meaning: "away, from", examples: ["abstain", "abstract", "absence"] },
+      { id: "per_through", morpheme: "per", type: "prefix", meaning: "through", examples: ["permit", "perception", "perspective"] },
+
+      // Roots (pink)
+      { id: "centi_root", morpheme: "centi", type: "root", meaning: "one hundred", examples: ["centiliter", "centipede", "centimetre"] },
+      { id: "tain_root",  morpheme: "tain",  type: "root", meaning: "to hold", examples: ["retain", "obtain", "contain"] },
+      { id: "dent_root",  morpheme: "dent",  type: "root", meaning: "tooth", examples: ["dental", "dentist", "denture"] },
+      { id: "cred_root",  morpheme: "cred",  type: "root", meaning: "to trust, to believe", examples: ["credit", "credible", "incredible"] },
+      { id: "creed_root", morpheme: "creed", type: "root", meaning: "to trust, to believe", examples: ["creed", "creeds", "creedless"] },
+      { id: "ten_root",   morpheme: "ten",   type: "root", meaning: "to hold", examples: ["attend", "tenant", "maintenance"] },
+      { id: "cent_root",  morpheme: "cent",  type: "root", meaning: "one hundred", examples: ["cents", "century", "percent"] },
+
+      // Greek combining forms (blue)
+      { id: "naut_greek",   morpheme: "naut",   type: "greek", meaning: "sailor",             examples: ["nautical", "astronaut", "cosmonauts"] },
+      { id: "aster_greek",  morpheme: "aster",  type: "greek", meaning: "star",               examples: ["asterisk", "asteroid"] },
+      { id: "astro_greek",  morpheme: "astro",  type: "greek", meaning: "star",               examples: ["astrology", "astronaut", "astrological"] },
+      { id: "cosm_greek",   morpheme: "cosm",   type: "greek", meaning: "world, universe",    examples: ["cosmic"] },
+      { id: "cosmo_greek",  morpheme: "cosmo",  type: "greek", meaning: "world, universe",    examples: ["cosmos", "cosmology", "cosmologist"] },
+      { id: "chron_greek",  morpheme: "chron",  type: "greek", meaning: "time",               examples: ["chronic", "chronicle", "chronically"] },
+      { id: "chrono_greek", morpheme: "chrono", type: "greek", meaning: "time",               examples: ["chronology", "chronologies", "chronological"] },
+
+      // Suffixes (yellow)
+      { id: "ury_suffix",   morpheme: "ury",    type: "suffix", meaning: "consisting of",     examples: ["luxury", "century", "treasury"] },
+      { id: "it_suffix",    morpheme: "it",     type: "suffix", meaning: "past tense",        examples: ["exit", "credit", "permit"] },
+      { id: "enary_suffix", morpheme: "(en)ary", type: "suffix", meaning: "forms nouns",      examples: ["millenary", "centenary", "semicentenary"] }
+    ];
+
+    const prefixList = term4Morphemes.filter(m => m.type === "prefix");
+    const rootList   = term4Morphemes.filter(m => m.type === "root");
+    const suffixList = term4Morphemes.filter(m => m.type === "suffix");
+    const greekList  = term4Morphemes.filter(m => m.type === "greek");
+
+    // -----------------------------
+    // Segmentation overrides – explicit splits
+    // -----------------------------
+    const segmentationOverrides = {
+      // ab(s)
+      "abstain": [
+        { text: "ab(s)", type: "prefix" },
+        { text: "stain", type: "root" }
+      ],
+      "abstract": [
+        { text: "ab(s)", type: "prefix" },
+        { text: "tract", type: "root" }
+      ],
+      "absence": [
+        { text: "ab(s)", type: "prefix" },
+        { text: "sence", type: "root" }
+      ],
+
+      // per
+      "permit": [
+        { text: "per", type: "prefix" },
+        { text: "mit", type: "root" }
+      ],
+      "perception": [
+        { text: "per", type: "prefix" },
+        { text: "cept", type: "root" },
+        { text: "ion", type: "suffix" }
+      ],
+      "perspective": [
+        { text: "per", type: "prefix" },
+        { text: "spect", type: "root" },
+        { text: "ive", type: "suffix" }
+      ],
+
+      // centi – UPDATED: liter, pede, metre as GREEK FORM
+      "centiliter": [
+        { text: "centi", type: "root" },
+        { text: "liter", type: "greek" }   // <- changed from root to greek
+      ],
+      "centipede": [
+        { text: "centi", type: "root" },
+        { text: "pede", type: "greek" }    // <- changed from root to greek
+      ],
+      "centimetre": [
+        { text: "centi", type: "root" },
+        { text: "metre", type: "greek" }   // <- changed from root to greek
+      ],
+
+      // tain
+      "retain": [
+        { text: "re", type: "prefix" },
+        { text: "tain", type: "root" }
+      ],
+      "obtain": [
+        { text: "ob", type: "prefix" },
+        { text: "tain", type: "root" }
+      ],
+      "contain": [
+        { text: "con", type: "prefix" },
+        { text: "tain", type: "root" }
+      ],
+
+      // dent
+      "dental": [
+        { text: "dent", type: "root" },
+        { text: "al", type: "suffix" }
+      ],
+      "dentist": [
+        { text: "dent", type: "root" },
+        { text: "ist", type: "suffix" }
+      ],
+      "denture": [
+        { text: "dent", type: "root" },
+        { text: "ure", type: "suffix" }
+      ],
+
+      // cred
+      "credit": [
+        { text: "cred", type: "root" },
+        { text: "it", type: "suffix" }
+      ],
+      "credible": [
+        { text: "cred", type: "root" },
+        { text: "ible", type: "suffix" }
+      ],
+      "incredible": [
+        { text: "in", type: "prefix" },
+        { text: "cred", type: "root" },
+        { text: "ible", type: "suffix" }
+      ],
+
+      // creed
+      "creed": [
+        { text: "creed", type: "root" }
+      ],
+      "creeds": [
+        { text: "creed", type: "root" },
+        { text: "s", type: "suffix" }
+      ],
+      "creedless": [
+        { text: "creed", type: "root" },
+        { text: "less", type: "suffix" }
+      ],
+
+      // ten
+      "attend": [
+        { text: "at", type: "prefix" },
+        { text: "tend", type: "root" }
+      ],
+      "tenant": [
+        { text: "ten", type: "root" },
+        { text: "ant", type: "suffix" }
+      ],
+      "maintenance": [
+        { text: "main", type: "root" },
+        { text: "ten", type: "root" },
+        { text: "ance", type: "suffix" }
+      ],
+
+      // cent
+      "cents": [
+        { text: "cent", type: "root" },
+        { text: "s", type: "suffix" }
+      ],
+      "century": [
+        { text: "cent", type: "root" },
+        { text: "ury", type: "suffix" }
+      ],
+      "percent": [
+        { text: "per", type: "prefix" },
+        { text: "cent", type: "root" }
+      ],
+
+      // ury
+      "luxury": [
+        { text: "lux", type: "root" },
+        { text: "ury", type: "suffix" }
+      ],
+      "treasury": [
+        { text: "treas", type: "root" },
+        { text: "ury", type: "suffix" }
+      ],
+
+      // it
+      "exit": [
+        { text: "ex", type: "prefix" },
+        { text: "it", type: "suffix" }
+      ],
+
+      // (en)ary
+      "millenary": [
+        { text: "mill", type: "root" },
+        { text: "(en)ary", type: "suffix" }
+      ],
+      "centenary": [
+        { text: "cent", type: "root" },
+        { text: "(en)ary", type: "suffix" }
+      ],
+      "semicentenary": [
+        { text: "semi", type: "prefix" },
+        { text: "cent", type: "root" },
+        { text: "(en)ary", type: "suffix" }
+      ],
+
+      // Greek – naut
+      "nautical": [
+        { text: "naut", type: "greek" },
+        { text: "ical", type: "suffix" }
+      ],
+      "astronaut": [
+        { text: "astro", type: "greek" },
+        { text: "naut", type: "greek" }
+      ],
+      "cosmonauts": [
+        { text: "cosmo", type: "greek" },
+        { text: "naut", type: "greek" },
+        { text: "s", type: "suffix" }
+      ],
+
+      // Greek – aster
+      "asterisk": [
+        { text: "aster", type: "greek" },
+        { text: "isk", type: "suffix" }
+      ],
+      "asteroid": [
+        { text: "aster", type: "greek" },
+        { text: "oid", type: "suffix" }
+      ],
+
+      // Greek – astro
+      "astrology": [
+        { text: "astro", type: "greek" },
+        { text: "logy", type: "suffix" }
+      ],
+      "astrological": [
+        { text: "astro", type: "greek" },
+        { text: "log", type: "root" },
+        { text: "ical", type: "suffix" }
+      ],
+
+      // Greek – cosm / cosmo
+      "cosmic": [
+        { text: "cosm", type: "greek" },
+        { text: "ic", type: "suffix" }
+      ],
+      "cosmos": [
+        { text: "cosmo", type: "greek" },
+        { text: "s", type: "suffix" }
+      ],
+      "cosmology": [
+        { text: "cosmo", type: "greek" },
+        { text: "logy", type: "suffix" }
+      ],
+      "cosmologist": [
+        { text: "cosmo", type: "greek" },
+        { text: "log", type: "root" },
+        { text: "ist", type: "suffix" }
+      ],
+
+      // Greek – chron / chrono
+      "chronic": [
+        { text: "chron", type: "greek" },
+        { text: "ic", type: "suffix" }
+      ],
+      "chronicle": [
+        { text: "chron", type: "greek" },
+        { text: "icle", type: "suffix" }
+      ],
+      "chronically": [
+        { text: "chron", type: "greek" },
+        { text: "ic", type: "suffix" },
+        { text: "ally", type: "suffix" }
+      ],
+      "chronology": [
+        { text: "chrono", type: "greek" },
+        { text: "logy", type: "suffix" }
+      ],
+      "chronologies": [
+        { text: "chrono", type: "greek" },
+        { text: "log", type: "root" },
+        { text: "ies", type: "suffix" }
+      ],
+      "chronological": [
+        { text: "chrono", type: "greek" },
+        { text: "logic", type: "root" },
+        { text: "al", type: "suffix" }
+      ]
+    };
+
+    // -----------------------------
+    // State & DOM
+    // -----------------------------
+    let currentIndex = 0;
+    let selectedTileEl = null;
+    let lastCorrectPositionIndex = -1;
+
+    const morphemeTextEl     = document.getElementById("morphemeText");
+    const typeLabelEl        = document.getElementById("typeLabel");
+    const optionsContainerEl = document.getElementById("optionsContainer");
+    const feedbackPart1El    = document.getElementById("feedbackPart1");
+    const progressTextEl     = document.getElementById("progressText");
+
+    const tileBankEl         = document.getElementById("tileBank");
+    const puzzleFeedbackEl   = document.getElementById("puzzleFeedback");
+
+    const prevBtn            = document.getElementById("prevBtn");
+    const nextBtn            = document.getElementById("nextBtn");
+    const checkPuzzleBtn     = document.getElementById("checkPuzzleBtn");
+    const showAnswerBtn      = document.getElementById("showAnswerBtn");
+    const resetPuzzleBtn     = document.getElementById("resetPuzzleBtn");
+
+    const dropColumns        = document.querySelectorAll(".drop-column");
+
+    // -----------------------------
+    // Helpers
+    // -----------------------------
+    function shuffle(array) {
+      const arr = array.slice();
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
+    }
+
+    function capitaliseFirst(str) {
+      if (!str) return "";
+      return str.charAt(0).toUpperCase() + str.slice(1);
+    }
+
+    function updateSuffixColumns(needSecond) {
+      const suffixCols = document.querySelectorAll('.drop-column[data-column-type="suffix"]');
+      if (suffixCols.length > 1) {
+        suffixCols[1].style.display = needSecond ? "" : "none";
+      }
+    }
+
+    function updateGreekColumn(needGreek) {
+      const greekCol = document.querySelector('.drop-column[data-column-type="greek"]');
+      if (greekCol) {
+        greekCol.style.display = needGreek ? "" : "none";
+      }
+    }
+
+    // -----------------------------
+    // Part 1 – meanings
+    // -----------------------------
+    function renderPart1() {
+      const item = term4Morphemes[currentIndex];
+      morphemeTextEl.textContent = item.morpheme;
+      typeLabelEl.textContent = capitaliseFirst(item.type === "greek" ? "Greek" : item.type);
+
+      optionsContainerEl.innerHTML = "";
+      feedbackPart1El.textContent = "";
+      feedbackPart1El.className = "feedback";
+
+      const distractors = shuffle(
+        term4Morphemes.filter(m => m.meaning !== item.meaning)
+      ).slice(0, 2);
+
+      // Rotate the correct position: 0 → 1 → 2 → 0 …
+      lastCorrectPositionIndex = (lastCorrectPositionIndex + 1) % 3;
+      const correctPos = lastCorrectPositionIndex;
+
+      const optionDefs = [];
+      let distractorIndex = 0;
+      for (let i = 0; i < 3; i++) {
+        if (i === correctPos) {
+          optionDefs.push({ text: item.meaning, correct: true });
+        } else {
+          const d = distractors[distractorIndex++];
+          optionDefs.push({ text: d.meaning, correct: false });
+        }
+      }
+
+      optionDefs.forEach(opt => {
+        const div = document.createElement("div");
+        div.className = "option";
+        div.dataset.correct = opt.correct ? "true" : "false";
+
+        const tickSpan = document.createElement("span");
+        tickSpan.className = "tick";
+        tickSpan.textContent = "";
+
+        const labelSpan = document.createElement("span");
+        labelSpan.textContent = opt.text;
+
+        div.appendChild(tickSpan);
+        div.appendChild(labelSpan);
+
+        div.addEventListener("click", () => handleOptionClick(div));
+        optionsContainerEl.appendChild(div);
+      });
+
+      progressTextEl.textContent =
+        "Morpheme " + (currentIndex + 1) + " of " + term4Morphemes.length;
+    }
+
+    function handleOptionClick(optionEl) {
+      const isCorrect = optionEl.dataset.correct === "true";
+
+      const allOptions = optionsContainerEl.querySelectorAll(".option");
+      allOptions.forEach(opt => {
+        opt.classList.remove("correct-selected", "incorrect-selected");
+        const tickEl = opt.querySelector(".tick");
+        if (tickEl) tickEl.textContent = "";
+      });
+
+      if (isCorrect) {
+        optionEl.classList.add("correct-selected");
+        const tickEl = optionEl.querySelector(".tick");
+        if (tickEl) tickEl.textContent = "✓";
+        feedbackPart1El.textContent = "Correct!";
+        feedbackPart1El.className = "feedback correct";
+      } else {
+        optionEl.classList.add("incorrect-selected");
+        const tickEl = optionEl.querySelector(".tick");
+        if (tickEl) tickEl.textContent = "✗";
+        feedbackPart1El.textContent = "Not quite. Try again.";
+        feedbackPart1El.className = "feedback incorrect";
+      }
+    }
+
+    // -----------------------------
+    // Part 2 – tiles
+    // -----------------------------
+    function clearColumns() {
+      dropColumns.forEach(col => {
+        const header = col.querySelector(".drop-column-header");
+        col.innerHTML = "";
+        if (header) col.appendChild(header);
+      });
+      tileBankEl.innerHTML = "";
+      selectedTileEl = null;
+      puzzleFeedbackEl.textContent = "";
+      puzzleFeedbackEl.className = "puzzle-feedback";
+    }
+
+    function segmentWord(word) {
+      const lower = word.toLowerCase();
+
+      if (segmentationOverrides[lower]) {
+        // clone objects so we don't mutate originals
+        return segmentationOverrides[lower].map(seg => ({ ...seg }));
+      }
+
+      const wordLower = lower;
+
+      // fallback: simple prefix/root/suffix guess based only on Term 4 sets
+      let prefixSeg = null;
+      let baseLower = wordLower;
+      let baseOrig  = word;
+
+      const sortedPrefixes = prefixList
+        .slice()
+        .sort((a, b) => b.morpheme.length - a.morpheme.length);
+
+      for (const p of sortedPrefixes) {
+        const mor = p.morpheme.toLowerCase();
+        if (wordLower.startsWith(mor)) {
+          prefixSeg = { text: p.morpheme, type: "prefix" };
+          baseLower = wordLower.slice(mor.length);
+          baseOrig  = word.slice(mor.length);
+          break;
+        }
+      }
+
+      let suffixSeg = null;
+      let rootLower = baseLower;
+      let rootOrig  = baseOrig;
+
+      const sortedSuffixes = suffixList
+        .slice()
+        .sort((a, b) => b.morpheme.length - a.morpheme.length);
+
+      for (const s of sortedSuffixes) {
+        const mor = s.morpheme.toLowerCase();
+        if (rootLower.endsWith(mor) && rootLower.length > mor.length) {
+          suffixSeg = { text: s.morpheme, type: "suffix" };
+          rootLower = rootLower.slice(0, -mor.length);
+          rootOrig  = rootOrig.slice(0, -s.morpheme.length);
+          break;
+        }
+      }
+
+      let rootSeg = null;
+      if (rootLower.length > 0) {
+        const matchingRoot = rootList.find(
+          r => r.morpheme.toLowerCase() === rootLower
+        ) || greekList.find(
+          g => g.morpheme.toLowerCase() === rootLower
+        );
+        if (matchingRoot) {
+          rootSeg = {
+            text: matchingRoot.morpheme,
+            type: matchingRoot.type === "greek" ? "greek" : "root"
+          };
+        } else {
+          rootSeg = { text: rootOrig, type: "root" };
+        }
+      }
+
+      const segments = [];
+      if (prefixSeg) segments.push(prefixSeg);
+      if (rootSeg)   segments.push(rootSeg);
+      if (suffixSeg) segments.push(suffixSeg);
+      return segments;
+    }
+
+    function computeTilesForMorpheme(item) {
+      const tiles = [];
+      const words = item.examples || [];
+
+      words.forEach(word => {
+        const segments = segmentWord(word);
+        segments.forEach(seg => {
+          tiles.push({ text: seg.text, type: seg.type });
+        });
+      });
+
+      // Ensure the current morpheme tile is present at least once
+      const hasCurrent = tiles.some(
+        t => t.text === item.morpheme && t.type === item.type
+      );
+      if (!hasCurrent) {
+        tiles.push({ text: item.morpheme, type: item.type });
+      }
+
+      return tiles;
+    }
+
+    function renderPart2() {
+      const item = term4Morphemes[currentIndex];
+
+      clearColumns();
+
+      const tiles = computeTilesForMorpheme(item);
+
+      const suffixCount = tiles.filter(t => t.type === "suffix").length;
+      const hasGreek    = tiles.some(t => t.type === "greek");
+
+      updateSuffixColumns(suffixCount > 1);
+      updateGreekColumn(hasGreek);
+
+      const shuffledTiles = shuffle(tiles);
+      shuffledTiles.forEach(tileData => {
+        const tileEl = document.createElement("div");
+        tileEl.className = "tile";
+        tileEl.textContent = tileData.text;
+        tileEl.dataset.type = tileData.type;
+        tileBankEl.appendChild(tileEl);
+
+        tileEl.addEventListener("click", () => handleTileClick(tileEl));
+      });
+    }
+
+    function handleTileClick(tileEl) {
+      if (selectedTileEl === tileEl) {
+        tileEl.classList.remove("selected");
+        selectedTileEl = null;
+        return;
+      }
+      if (selectedTileEl) {
+        selectedTileEl.classList.remove("selected");
+      }
+      tileEl.classList.add("selected");
+      selectedTileEl = tileEl;
+    }
+
+    dropColumns.forEach(col => {
+      col.addEventListener("click", () => {
+        if (!selectedTileEl) return;
+        col.appendChild(selectedTileEl);
+        selectedTileEl.classList.remove("selected");
+        selectedTileEl = null;
+      });
+    });
+
+    function checkPuzzle() {
+      let allCorrect = true;
+
+      const allTiles = document.querySelectorAll(".tile-bank .tile, .drop-column .tile");
+      allTiles.forEach(tile => {
+        tile.style.outline = "none";
+      });
+
+      dropColumns.forEach(col => {
+        const colType = col.dataset.columnType;
+        const tiles = col.querySelectorAll(".tile");
+
+        tiles.forEach(tile => {
+          if (colType === tile.dataset.type) {
+            tile.style.outline = "2px solid " +
+              getComputedStyle(document.documentElement)
+                .getPropertyValue("--correct");
+          } else {
+            tile.style.outline = "2px solid " +
+              getComputedStyle(document.documentElement)
+                .getPropertyValue("--incorrect");
+            allCorrect = false;
+          }
+        });
+      });
+
+      if (allCorrect) {
+        puzzleFeedbackEl.textContent = "Well done – all morphemes are in the correct columns!";
+        puzzleFeedbackEl.className = "puzzle-feedback correct";
+      } else {
+        puzzleFeedbackEl.textContent = "Some tiles are in the wrong column. Check the colours and try again.";
+        puzzleFeedbackEl.className = "puzzle-feedback incorrect";
+      }
+    }
+
+    function showCorrectArrangement() {
+      const allTiles = document.querySelectorAll(".tile-bank .tile, .drop-column .tile");
+
+      allTiles.forEach(tile => {
+        const type = tile.dataset.type;
+        const targetCol = document.querySelector('.drop-column[data-column-type="' + type + '"]');
+        if (targetCol) {
+          targetCol.appendChild(tile);
+        }
+        tile.style.outline = "2px solid " +
+          getComputedStyle(document.documentElement)
+            .getPropertyValue("--correct");
+      });
+
+      puzzleFeedbackEl.textContent = "Here is one correct way to sort the morphemes.";
+      puzzleFeedbackEl.className = "puzzle-feedback correct";
+    }
+
+    function resetPuzzle() {
+      renderPart2();
+    }
+
+    // -----------------------------
+    // Navigation
+    // -----------------------------
+    function goToIndex(newIndex) {
+      if (newIndex < 0) newIndex = 0;
+      if (newIndex >= term4Morphemes.length) newIndex = term4Morphemes.length - 1;
+      currentIndex = newIndex;
+      renderPart1();
+      renderPart2();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    prevBtn.addEventListener("click", () => {
+      goToIndex(currentIndex - 1);
+    });
+
+    nextBtn.addEventListener("click", () => {
+      goToIndex(currentIndex + 1);
+    });
+
+    checkPuzzleBtn.addEventListener("click", checkPuzzle);
+    showAnswerBtn.addEventListener("click", showCorrectArrangement);
+    resetPuzzleBtn.addEventListener("click", resetPuzzle);
+
+    // -----------------------------
+    // Initial render
+    // -----------------------------
+    goToIndex(0);
+  </script>
+</body>
+</html>
